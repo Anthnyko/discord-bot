@@ -34,7 +34,6 @@ class Events(commands.Cog):
             await message.delete()
             await message.channel.send(f"{message.author.mention} watch your language!")
 
-        await self.bot.process_commands(message)
 
 async def setup(bot):
     await bot.add_cog(Events(bot))

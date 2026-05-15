@@ -4,8 +4,10 @@ import logging
 from dotenv import load_dotenv
 import os
 import json
+import asyncio
 
 print("BOT INSTANCE STARTED")
+print("RUNNING FROM:", os.path.abspath(__file__))
 
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
@@ -36,11 +38,22 @@ initial_extensions = [
     "cogs.social"
 ]
 
+async def load_extensions():
+    for ext in initial_extensions:
+        try:
+            await bot.load_extension(ext)
+            print(f"Loaded extension: {ext}")
+        except Exception as e:
+            print(f"Failed to load {ext}: {e}")
+
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}")
-    for ext in initial_extensions:
-        await bot.load_extension(ext)
     print("All cogs loaded!")
 
-bot.run(token, log_handler=handler, log_level=logging.DEBUG)
+async def main():
+    async with bot:
+        await load_extensions()
+        await bot.start(token)
+
+asyncio.run(main())
