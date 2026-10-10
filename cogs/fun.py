@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord import app_commands
 import random
 import aiohttp
 
@@ -9,62 +10,109 @@ class Fun(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
-    async def dice(self, ctx):
-        await ctx.send(f"You rolled a {random.randint(1, 6)}!")
+    # ---------------------------
+    # Dice
+    # ---------------------------
+    @app_commands.command(name="dice", description="Roll a 6-sided dice")
+    async def dice(self, interaction: discord.Interaction):
+        roll = random.randint(1, 6)
+        await interaction.response.send_message(f"You rolled a {roll}!")
 
-    @commands.command()
-    async def coinflip(self, ctx):
-        await ctx.send(random.choice(["Heads", "Tails"]))
+    # ---------------------------
+    # Coinflip
+    # ---------------------------
+    @app_commands.command(name="coinflip", description="Flip a coin")
+    async def coinflip(self, interaction: discord.Interaction):
+        await interaction.response.send_message(random.choice(["Heads", "Tails"]))
 
-    @commands.command()
-    async def eightball(self, ctx, *, question):
+    # ---------------------------
+    # Eightball
+    # ---------------------------
+    @app_commands.command(name="eightball", description="Ask the magic 8-ball a question")
+    @app_commands.describe(question="The question you want to ask the 8-ball")
+    async def eightball(self, interaction: discord.Interaction, question: str):
         responses = [
             "Yes", "No", "Maybe", "Definitely", "Absolutely not",
             "Ask again later", "I don't think so", "100% yes"
         ]
-        await ctx.send(random.choice(responses))
+        answer = random.choice(responses)
+        await interaction.response.send_message(
+            f"**Question:** {question}\n**Answer:** {answer}"
+        )
 
-    @commands.command()
-    async def roast(self, ctx, member: discord.Member = None):
-        member = member or ctx.author
+    # ---------------------------
+    # Roast
+    # ---------------------------
+    @app_commands.command(name="roast", description="Roast a server member")
+    @app_commands.describe(member="The server member you want to roast")
+    async def roast(self, interaction: discord.Interaction, member: discord.Member = None):
+        member = member or interaction.user
         roasts = [
             "You're not stupid — you just have bad luck thinking.",
             "If I wanted to kill myself, I'd climb your ego and jump to your IQ.",
             "You have the charisma of a damp sock."
         ]
-        await ctx.send(f"{member.mention} {random.choice(roasts)}")
+        await interaction.response.send_message(
+            f"{member.mention} {random.choice(roasts)}"
+        )
 
-    @commands.command()
-    async def compliment(self, ctx, member: discord.Member = None):
-        member = member or ctx.author
+    # ---------------------------
+    # Compliment
+    # ---------------------------
+    @app_commands.command(name="compliment", description="Give a friendly compliment")
+    @app_commands.describe(member="The server member you want to compliment")
+    async def compliment(self, interaction: discord.Interaction, member: discord.Member = None):
+        member = member or interaction.user
         compliments = [
             "You're awesome.",
             "You're smarter than you think.",
             "You make the server better."
         ]
-        await ctx.send(f"{member.mention} {random.choice(compliments)}")
+        await interaction.response.send_message(
+            f"{member.mention} {random.choice(compliments)}"
+        )
 
-    @commands.command()
-    async def meme(self, ctx):
+    # ---------------------------
+    # Meme
+    # ---------------------------
+    @app_commands.command(name="meme", description="Fetch a random meme from Reddit")
+    async def meme(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         async with aiohttp.ClientSession() as session:
             async with session.get("https://meme-api.com/gimme") as resp:
-                data = await resp.json()
-                await ctx.send(data["url"])
+                if resp.status == 200:
+                    data = await resp.json()
+                    await interaction.followup.send(data["url"])
+                else:
+                    await interaction.followup.send("Failed to fetch a meme.")
 
-    @commands.command()
-    async def dog(self, ctx):
+    # ---------------------------
+    # Dog
+    # ---------------------------
+    @app_commands.command(name="dog", description="Get a random dog image")
+    async def dog(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         async with aiohttp.ClientSession() as session:
             async with session.get("https://dog.ceo/api/breeds/image/random") as resp:
-                data = await resp.json()
-                await ctx.send(data["message"])
+                if resp.status == 200:
+                    data = await resp.json()
+                    await interaction.followup.send(data["message"])
+                else:
+                    await interaction.followup.send("Failed to fetch a dog picture.")
 
-    @commands.command()
-    async def cat(self, ctx):
+    # ---------------------------
+    # Cat
+    # ---------------------------
+    @app_commands.command(name="cat", description="Get a random cat image")
+    async def cat(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         async with aiohttp.ClientSession() as session:
             async with session.get("https://api.thecatapi.com/v1/images/search") as resp:
-                data = await resp.json()
-                await ctx.send(data[0]["url"])
+                if resp.status == 200:
+                    data = await resp.json()
+                    await interaction.followup.send(data[0]["url"])
+                else:
+                    await interaction.followup.send("Failed to fetch a cat picture.")
 
 async def setup(bot):
     await bot.add_cog(Fun(bot))

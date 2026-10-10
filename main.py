@@ -31,6 +31,8 @@ with open("data/config.json", "r") as f:
 
 bot = commands.Bot(command_prefix=prefix, intents=intents)
 
+TEST_GUILD_ID = 880650953735434320 # Replace with your actual server ID
+
 initial_extensions = [
     "cogs.events",
     "cogs.fun",
@@ -49,9 +51,19 @@ async def load_extensions():
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}")
+
+    try:
+        guild = discord.Object(id=TEST_GUILD_ID)
+        bot.tree.copy_global_to(guild=guild)
+        synced = await bot.tree.sync(guild=guild)
+        print(f"Successfully synced {len(synced)} slash commands to test server!")
+    except Exception as e:
+        print(f"Error syncing slash commands: {e}")
+
     print("All cogs loaded!")
 
 async def main():
+    discord.utils.setup_logging(handler=handler, root=False)
     async with bot:
         await load_extensions()
         await bot.start(token)

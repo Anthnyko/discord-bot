@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord import app_commands
 import asyncio
 
 print("LOADED: utility")
@@ -8,43 +9,50 @@ class Utility(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
-    async def poll(self, ctx, *, message):
-        embed = discord.Embed(title="New Poll", description=message, color=discord.Color.green())
-        msg = await ctx.send(embed=embed)
-        await msg.add_reaction("👍")
-        await msg.add_reaction("👎")
+    @app_commands.command(name="poll", description="Create a poll with thumbs up/down reactions")
+    @app_commands.describe(message="The poll question")
+    async def poll(self, interaction: discord.Interaction, message: str):
+        embed = discord.Embed(
+            title="New Poll",
+            description=message,
+            color=discord.Color.green()
+        )
 
-    @commands.command()
-    async def remind(self, ctx, time: int, *, message):
-        await ctx.send(f"Okay! I'll remind you in {time} seconds.")
-        await asyncio.sleep(time)
-        await ctx.author.send(f"Reminder: {message}")
+        await interaction.response.send_message("Poll created!", ephemeral=True)
+        poll_message = await interaction.channel.send(embed=embed)
 
-    @commands.command()
-    async def dm(self, ctx, *, message):
-        await ctx.author.send(message)
+        await poll_message.add_reaction("👍")
+        await poll_message.add_reaction("👎")
 
-    @commands.command()
-    async def reply(self, ctx):
-        await ctx.reply("This is a reply!")
+    @app_commands.command(name="serverinfo", description="Show information about the server")
+    @app_commands.guild_only()
+    async def serverinfo(self, interaction: discord.Interaction):
+        guild = interaction.guild
 
-    @commands.command()
-    async def serverinfo(self, ctx):
-        embed = discord.Embed(title="Server Info", color=discord.Color.blue())
-        embed.add_field(name="Name", value=ctx.guild.name)
-        embed.add_field(name="Members", value=ctx.guild.member_count)
-        embed.add_field(name="Owner", value=ctx.guild.owner)
-        await ctx.send(embed=embed)
+        embed = discord.Embed(
+            title="Server Info",
+            color=discord.Color.blue()
+        )
+        embed.add_field(name="Name", value=guild.name)
+        embed.add_field(name="Members", value=guild.member_count)
+        embed.add_field(name="Owner", value=guild.owner)
 
-    @commands.command()
-    async def userinfo(self, ctx, member: discord.Member = None):
-        member = member or ctx.author
-        embed = discord.Embed(title=f"{member.name}'s Info", color=discord.Color.purple())
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="userinfo", description="Show information about a user")
+    @app_commands.describe(member="The user to get info about")
+    async def userinfo(self, interaction: discord.Interaction, member: discord.Member = None):
+        member = member or interaction.user
+
+        embed = discord.Embed(
+            title=f"{member.name}'s Info",
+            color=discord.Color.purple()
+        )
         embed.add_field(name="ID", value=member.id)
         embed.add_field(name="Joined", value=member.joined_at)
         embed.add_field(name="Created", value=member.created_at)
-        await ctx.send(embed=embed)
+
+        await interaction.response.send_message(embed=embed)
 
 async def setup(bot):
     await bot.add_cog(Utility(bot))
