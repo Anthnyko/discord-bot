@@ -19,6 +19,15 @@ class Fun(commands.Cog):
         await interaction.response.send_message(f"You rolled a {roll}!")
 
     # ---------------------------
+    # Roll
+    # ---------------------------
+    @app_commands.command(name="roll", description="Choose a number between 1 and number given")
+    async def roll(self, interaction: discord.Interaction, number: int = 100):
+        roll = random.randint(1, number)
+        await interaction.response.send_message(roll)
+
+
+    # ---------------------------
     # Coinflip
     # ---------------------------
     @app_commands.command(name="coinflip", description="Flip a coin")

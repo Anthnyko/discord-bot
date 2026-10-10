@@ -31,7 +31,7 @@ with open("data/config.json", "r") as f:
 
 bot = commands.Bot(command_prefix=prefix, intents=intents)
 
-TEST_GUILD_ID = 880650953735434320 # Replace with your actual server ID
+TEST_GUILD_ID = int(os.getenv("TEST_GUILD_ID"))
 
 initial_extensions = [
     "cogs.events",
